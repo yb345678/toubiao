@@ -13,11 +13,18 @@ from app.db.init_db import init_db
 
 def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name, version="0.1.0")
-    origins = ["*"] if settings.cors_origins == "*" else [item.strip() for item in settings.cors_origins.split(",")]
+    configured_origins = [
+        item.strip().rstrip("/")
+        for item in settings.cors_origins.split(",")
+        if item.strip() and item.strip() != "*"
+    ]
+    if settings.frontend_url:
+        configured_origins.append(settings.frontend_url.strip().rstrip("/"))
+    origins = sorted(set(configured_origins)) or ["*"]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
-        allow_credentials=True,
+        allow_credentials=origins != ["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )

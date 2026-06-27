@@ -1,8 +1,6 @@
 import axios, { AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from "axios";
 
-const DEFAULT_FASTAPI_URL = "http://127.0.0.1:8000";
-
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_FASTAPI_URL).replace(/\/$/, "");
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
 export class ApiError extends Error {
   status: number;
@@ -36,7 +34,7 @@ httpClient.interceptors.response.use(
   async (error: AxiosError) => {
     if (!error.response) {
       throw new ApiError(
-        `Cannot connect to FastAPI at ${API_BASE_URL}. Start the backend server first.`,
+        `无法连接后端服务${API_BASE_URL ? `：${API_BASE_URL}` : ""}。请检查 VITE_API_BASE_URL 或后端服务状态。`,
         0,
         error
       );
