@@ -21,6 +21,7 @@ class Settings:
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./database/app.db")
     upload_dir: str = os.getenv("UPLOAD_DIR", "./uploads")
     output_dir: str = os.getenv("OUTPUT_DIR", "./outputs")
+    static_dir: str = os.getenv("STATIC_DIR", "")
     cors_origins: str = os.getenv("CORS_ORIGINS", "*")
     frontend_url: str = os.getenv("FRONTEND_URL", "")
     max_upload_size_mb: int = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))

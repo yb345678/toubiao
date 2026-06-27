@@ -1,3 +1,13 @@
+---
+title: AI Bidding Multi Agent
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # AI招投标多智能体系统
 
 企业日常需要人工审阅大量招标文件，效率低、遗漏风险高。本项目实现上传招标PDF后，由 Router 总调度四个独立 Skill Agent，在本地自动完成投标研判、资质打分、风险审查和投标方案初稿生成，贴合赛事主题“让 Agent 真正进入企业工作流”。
@@ -218,3 +228,45 @@ Docker volumes:
 ```
 
 The frontend nginx container proxies `/api` and `/health` to the backend service.
+
+## Hugging Face Spaces 部署
+
+本项目支持 Hugging Face Docker Space 单容器部署。根目录 `Dockerfile` 会完成：
+
+- 构建 Vite 前端：`npm install && npm run build`
+- 安装 FastAPI 后端依赖
+- 将 `frontend/dist` 复制到后端容器 `/app/static`
+- 由 FastAPI 同时提供 API 和前端静态页面
+- 监听 Hugging Face Spaces 标准端口 `7860`
+
+部署到 Hugging Face Spaces 时选择：
+
+```text
+SDK: Docker
+Port: 7860
+```
+
+前端默认使用同域相对 API 请求，例如：
+
+```text
+/api/v1/auth/login
+/api/v1/projects/{project_id}/files
+/api/v1/projects/{project_id}/analysis/start
+```
+
+因此在 Hugging Face 单容器部署时不需要配置独立后端网址，也不要把 `VITE_API_BASE_URL` 设置为本地地址。
+
+建议在 Hugging Face Spaces 的 Secrets 中配置：
+
+```text
+JWT_SECRET=your-random-secret
+```
+
+可选配置：
+
+```text
+DATABASE_URL=sqlite:////tmp/ai-bidding/app.db
+UPLOAD_DIR=/tmp/uploads
+OUTPUT_DIR=/tmp/outputs
+MAX_UPLOAD_SIZE_MB=50
+```
