@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Bot, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { getMe, login } from "../api/auth";
 import { setAuthTokens, setCachedUser } from "../store/authStore";
@@ -7,6 +7,7 @@ import "../styles/auth.css";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("demo@example.com");
   const [password, setPassword] = useState("Passw0rd!");
   const [loading, setLoading] = useState(false);
@@ -18,10 +19,16 @@ export function LoginPage() {
     setError("");
     try {
       const token = await login({ email, password });
+      if (typeof token.access_token !== "string" || !token.access_token.trim()) {
+        throw new Error("登录接口未返回有效 access_token。");
+      }
+      if (typeof token.refresh_token !== "string" || !token.refresh_token.trim()) {
+        throw new Error("登录接口未返回有效 refresh_token。");
+      }
       setAuthTokens(token.access_token, token.refresh_token);
       const user = await getMe();
       setCachedUser(user);
-      navigate("/dashboard");
+      navigate(searchParams.get("next") || "/dashboard", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "登录失败");
     } finally {

@@ -48,6 +48,27 @@ function redirectToLogin() {
   window.location.assign(`/login?next=${encodeURIComponent(currentPath)}`);
 }
 
+function authErrorMessage(data: unknown, fallback = "认证失败，请重新登录。") {
+  const detail =
+    typeof data === "string"
+      ? data
+      : typeof data === "object" && data && "detail" in data
+        ? String((data as { detail?: unknown }).detail || "")
+        : "";
+  const normalized = detail.toLowerCase();
+
+  if (normalized.includes("missing bearer")) return "未检测到登录凭证，请重新登录。";
+  if (normalized.includes("malformed_token")) return "登录凭证格式错误，请重新登录。";
+  if (normalized.includes("token_expired")) return "登录已过期，请重新登录。";
+  if (normalized.includes("invalid_signature")) return "登录凭证验证失败，请重新登录。";
+  if (normalized.includes("wrong_token_type")) return "登录凭证类型错误，请重新登录。";
+  if (normalized.includes("user not found")) return "登录用户不存在或会话已失效，请重新登录。";
+  if (normalized.includes("user is disabled")) return "账号已被停用，请联系管理员。";
+  if (normalized.includes("invalid token")) return "登录凭证无效，请重新登录。";
+
+  return fallback;
+}
+
 httpClient.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
@@ -90,13 +111,18 @@ httpClient.interceptors.response.use(
           const newAccessToken = await refreshPromise;
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return httpClient.request(originalRequest);
-        } catch {
+        } catch (refreshError) {
           clearToken();
+          redirectToLogin();
+          if (axios.isAxiosError(refreshError)) {
+            throw new ApiError(authErrorMessage(refreshError.response?.data), 401, refreshError.response?.data);
+          }
+          throw new ApiError("刷新登录状态失败，请重新登录。", 401, refreshError);
         }
       }
       clearToken();
       redirectToLogin();
-      throw new ApiError("登录已过期，请重新登录。", 401, error.response.data);
+      throw new ApiError(authErrorMessage(error.response.data), 401, error.response.data);
     }
 
     const data = error.response.data as { code?: string; detail?: string; error?: string; message?: string } | string | undefined;

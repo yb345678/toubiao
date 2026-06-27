@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import bad_request, unauthorized
@@ -8,6 +10,9 @@ from app.core.jwt import create_access_token, create_refresh_token, decode_refre
 from app.core.security import hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import RegisterRequest
+
+
+logger = logging.getLogger("ai_bidding.auth")
 
 
 def register_user(db: Session, payload: RegisterRequest) -> User:
@@ -23,12 +28,20 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
 
 def _build_token_pair(user: User) -> dict[str, str | int]:
     claims = {"role": user.role, "email": user.email}
-    return {
+    token_pair = {
         "access_token": create_access_token(user.id, extra_claims=claims),
         "refresh_token": create_refresh_token(user.id, extra_claims=claims),
         "expires_in": settings.access_token_expire_minutes * 60,
         "refresh_expires_in": settings.refresh_token_expire_minutes * 60,
     }
+    logger.info(
+        "auth_token_pair_created user_id=%s email=%s has_access=%s access_expires_in=%s",
+        user.id,
+        user.email,
+        bool(token_pair["access_token"]),
+        token_pair["expires_in"],
+    )
+    return token_pair
 
 
 def login_user(db: Session, email: str, password: str) -> dict[str, str | int]:
