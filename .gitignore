@@ -1,0 +1,188 @@
+# ============================================================
+# AI Bidding Multi-Agent Platform
+# Python + FastAPI + React + Vite + Docker
+# Keep source code, configs, docs, tests and lock files tracked.
+# Ignore local dependencies, caches, build artifacts, runtime data,
+# logs, uploaded files, generated reports and secrets.
+# ============================================================
+
+# ----------------------------
+# OS / editor
+# ----------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.example.json
+
+# ----------------------------
+# Environment / secrets
+# ----------------------------
+.env
+.env.*
+!.env.example
+*.local
+*.secret
+*.key
+*.pem
+
+# ----------------------------
+# Python
+# ----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+*.egg-info/
+.eggs/
+build/
+dist/
+site/
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# FastAPI / uvicorn / runtime
+*.pid
+*.sock
+uvicorn*.log
+gunicorn*.log
+
+# ----------------------------
+# Node / React / Vite
+# ----------------------------
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.npm-cache/
+.yarn/
+.pnpm-store/
+
+# Frontend build outputs and Vite cache
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.cache/
+frontend/vite-*.log
+dist_git/
+
+# Keep package manifests and lock files tracked
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/yarn.lock
+!frontend/pnpm-lock.yaml
+
+# ----------------------------
+# Docker local state
+# ----------------------------
+.docker-config/
+.docker/
+docker-data/
+DockerDesktopInstaller.exe
+*.tar
+*.tar.gz
+
+# Keep Docker source files tracked
+!Dockerfile
+!docker-compose.yml
+!backend/Dockerfile
+!frontend/Dockerfile
+
+# ----------------------------
+# Uploads / generated outputs
+# ----------------------------
+uploads/
+backend/uploads/
+outputs/*
+backend/outputs/*
+!outputs/.gitkeep
+!backend/outputs/.gitkeep
+
+# Generated reports / archives
+*.zip
+*.7z
+*.rar
+*.xlsx
+*.xls
+*.pdf
+*.docx
+*.csv
+
+# Keep demo and documentation assets when intentionally added
+!demo_data/**/*.xlsx
+!demo_data/**/*.xls
+!demo_data/**/*.pdf
+!demo_data/**/*.csv
+!skills/**/demo_*.csv
+!skills/**/demo_*.txt
+!docs/**/*.pdf
+
+# ----------------------------
+# Databases
+# ----------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.sqlite-journal
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+backend/database/*.db
+backend/database/*.sqlite
+backend/database/*.sqlite3
+
+# Keep schema and migrations tracked
+!database/schema.sql
+!database/migrations/**
+!backend/database/schema.sql
+!backend/database/migrations/**
+
+# ----------------------------
+# Logs and temporary files
+# ----------------------------
+logs/
+*.log
+tmp/
+temp/
+.tmp/
+.cache/
+cache/
+
+# ----------------------------
+# Test / coverage output
+# ----------------------------
+coverage/
+frontend/coverage/
+test-results/
+playwright-report/
+
+# ----------------------------
+# Misc generated files
+# ----------------------------
+*.bak
+*.tmp
+*.orig

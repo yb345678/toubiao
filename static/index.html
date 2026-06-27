@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI招投标多智能体系统</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Local Multi-Agent Workflow</p>
+        <h1>AI招投标多智能体系统</h1>
+        <p class="subtitle">上传招标PDF与企业资质库，自动完成解析、匹配、风险审查和投标方案生成。</p>
+      </div>
+      <div class="status" id="status">等待上传</div>
+    </section>
+
+    <section class="uploader">
+      <label class="drop" id="pdfDrop">
+        <span>招标PDF</span>
+        <strong id="pdfName">拖拽或点击选择文件</strong>
+        <input id="pdfFile" type="file" accept=".pdf,.txt">
+      </label>
+      <label class="drop" id="qualificationDrop">
+        <span>企业资质Excel库</span>
+        <strong id="qualificationName">拖拽或点击选择文件</strong>
+        <input id="qualificationFile" type="file" accept=".xlsx,.xls,.csv">
+      </label>
+      <div class="actions">
+        <button id="analyzeBtn">开始多Agent研判</button>
+        <button class="secondary" id="demoBtn">运行内置Demo</button>
+      </div>
+    </section>
+
+    <section class="decision" id="decision" hidden>
+      <div>
+        <span>研判结论</span>
+        <strong id="recommendation">-</strong>
+      </div>
+      <div>
+        <span>匹配分</span>
+        <strong id="score">-</strong>
+      </div>
+      <div>
+        <span>高风险</span>
+        <strong id="highRisk">-</strong>
+      </div>
+    </section>
+
+    <section class="grid" id="agentGrid"></section>
+
+    <section class="exports" id="exports" hidden>
+      <h2>导出材料</h2>
+      <div id="exportLinks"></div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

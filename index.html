@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Bidding Multi-Agent System</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --ink: #182230;
+      --muted: #667085;
+      --line: #d9e2ec;
+      --teal: #0f766e;
+      --blue: #1d4ed8;
+      --amber: #b45309;
+      --red: #b42318;
+      --green: #15803d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--teal);
+      color: white;
+      font-weight: 900;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 4px;
+      font-size: 26px;
+      line-height: 1.2;
+    }
+
+    .muted {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .badge {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--teal);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 16px;
+      margin: 22px 0;
+    }
+
+    .panel, .metric, .agent, .exports {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .panel h2 {
+      font-size: 34px;
+      line-height: 1.18;
+      margin-bottom: 12px;
+    }
+
+    .panel p {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .flow div {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfdff;
+      min-height: 94px;
+    }
+
+    .flow span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .upload label {
+      display: block;
+      border: 1px dashed #98a2b3;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+      background: #fbfdff;
+      cursor: pointer;
+    }
+
+    .upload small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .upload strong {
+      word-break: break-word;
+    }
+
+    input[type=file] { display: none; }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      height: 48px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--teal);
+      color: white;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    button.secondary { background: #334155; }
+    button.export { background: var(--amber); }
+
+    .status {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #ecfdf8;
+      color: var(--teal);
+      font-weight: 800;
+      min-height: 44px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      padding: 16px;
+      min-height: 108px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 10px;
+      font-size: 28px;
+    }
+
+    .ok { color: var(--green); }
+    .risk { color: var(--red); }
+
+    .agents {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .agent {
+      padding: 18px;
+      min-height: 310px;
+    }
+
+    .agent h3 {
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #eef2f6;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      background: #f8fafc;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin: 3px 4px 3px 0;
+      background: #e0f2fe;
+      color: #075985;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tag.green {
+      background: #dcfce7;
+      color: var(--green);
+    }
+
+    .tag.red {
+      background: #fee4e2;
+      color: var(--red);
+    }
+
+    pre {
+      margin: 0;
+      padding: 12px;
+      max-height: 360px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid #edf2f7;
+      border-radius: 8px;
+      background: #f8fafc;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .exports {
+      margin-top: 14px;
+      padding: 18px;
+    }
+
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 900px) {
+      header, .hero {
+        display: block;
+      }
+
+      .badge {
+        display: inline-block;
+        margin-top: 14px;
+      }
+
+      .flow, .metrics, .agents, .export-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .upload {
+        margin-top: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <h1>AI Bidding Multi-Agent System</h1>
+          <p class="muted">GitHub Pages static demo. Backend mode is available with python server.py.</p>
+        </div>
+      </div>
+      <div class="badge">Static Preview Ready</div>
+    </header>
+
+    <section class="hero">
+      <div class="panel">
+        <h2>From tender PDF to bid decision in one workflow</h2>
+        <p>This page is a static GitHub Pages preview. It demonstrates the complete product flow: PDF parsing, qualification matching, risk review, and bid proposal drafting. The full backend API is included in the repository and runs locally with Python.</p>
+        <div class="flow">
+          <div><span>Skill 1</span><strong>PDF parsing and evidence tracing</strong></div>
+          <div><span>Skill 2</span><strong>Qualification scoring</strong></div>
+          <div><span>Skill 3</span><strong>Bid risk review</strong></div>
+          <div><span>Skill 4</span><strong>Proposal draft generation</strong></div>
+        </div>
+      </div>
+
+      <div class="panel upload">
+        <h3>Demo control</h3>
+        <label>
+          <small>Tender PDF</small>
+          <strong id="pdfName">Choose a PDF or use demo data</strong>
+          <input id="pdfInput" type="file" accept=".pdf,.txt">
+        </label>
+        <label>
+          <small>Company qualification file</small>
+          <strong id="excelName">Choose an Excel/CSV file or use demo data</strong>
+          <input id="excelInput" type="file" accept=".xlsx,.xls,.csv">
+        </label>
+        <div class="buttons">
+          <button id="analyzeBtn">Simulate analysis</button>
+          <button class="secondary" id="demoBtn">Run demo</button>
+        </div>
+        <div class="status" id="status">Ready. Click Run demo.</div>
+      </div>
+    </section>
+
+    <section id="resultPanel" class="hidden">
+      <div class="metrics">
+        <div class="metric"><span>Recommendation</span><strong class="ok">Bid</strong></div>
+        <div class="metric"><span>Match score</span><strong class="ok">100</strong></div>
+        <div class="metric"><span>High risks</span><strong class="risk">1</strong></div>
+        <div class="metric"><span>Generated files</span><strong>4</strong></div>
+      </div>
+
+      <div class="agents">
+        <article class="agent">
+          <h3>Skill1 PDF Parser Agent</h3>
+          <table>
+            <tr><th>Field</th><th>Result</th><th>Evidence</th></tr>
+            <tr><td>Budget</td><td>3.8 million RMB</td><td>Page 1: project budget</td></tr>
+            <tr><td>Deadline</td><td>2026-07-18 09:30</td><td>Page 1: bid deadline</td></tr>
+            <tr><td>Deposit</td><td>50,000 RMB</td><td>Page 1: bid deposit</td></tr>
+            <tr><td>Scoring</td><td>Business 30, Technical 45, Price 25</td><td>Page 1: scoring weights</td></tr>
+            <tr><td>Rejection clause</td><td>Missing key documents causes invalid bid</td><td>Page 2: rejection terms</td></tr>
+          </table>
+        </article>
+
+        <article class="agent">
+          <h3>Skill2 Qualification Matching Agent</h3>
+          <span class="tag green">Business license matched</span>
+          <span class="tag green">Deposit proof matched</span>
+          <span class="tag green">Project manager certificate matched</span>
+          <span class="tag green">Two similar cases matched</span>
+          <span class="tag green">8-person team matched</span>
+          <pre>Overall status: fully qualified
+Score: 100/100
+Bonus tips:
+- Strengthen SLA and emergency response details.
+- Attach contracts, acceptance reports, and client references.</pre>
+        </article>
+
+        <article class="agent">
+          <h3>Skill3 Risk Review Agent</h3>
+          <table>
+            <tr><th>Level</th><th>Evidence</th><th>Mitigation</th></tr>
+            <tr><td><span class="tag red">High</span></td><td>Missing license, deposit proof, manager certificate, or authorization letter makes the bid invalid.</td><td>Use a mandatory checklist and three-party review before submission.</td></tr>
+            <tr><td><span class="tag">Medium</span></td><td>7x24 response and 30-minute emergency handling.</td><td>Calculate delivery cost and define service boundaries.</td></tr>
+            <tr><td><span class="tag">Medium</span></td><td>Service fee can be deducted when response time is not met.</td><td>Reserve fulfillment cost and negotiate penalty cap.</td></tr>
+          </table>
+        </article>
+
+        <article class="agent">
+          <h3>Skill4 Bid Proposal Agent</h3>
+          <pre id="draftText"># Bid Proposal Draft
+
+## 1. Project Overview
+- Project: Smart Park Operation and Maintenance Service
+- Budget: 3.8 million RMB
+- Deadline: 2026-07-18 09:30
+- Deposit: 50,000 RMB
+
+## 2. Business Response
+The company is fully qualified for the tender requirements. The business proposal should include license, authorization letter, deposit proof, project manager certificate, similar project cases, and team list.
+
+## 3. Technical Response
+The technical proposal should focus on stable operation, fast response, measurable SLA, quality control, data security, and risk closure.
+
+## 4. Conclusion
+Recommendation: bid. Complete stamped document review before formal submission.</pre>
+        </article>
+      </div>
+
+      <section class="exports">
+        <h3>Export demo materials</h3>
+        <div class="export-grid">
+          <button class="export" data-export="json">Report JSON</button>
+          <button class="export" data-export="csv">Score CSV</button>
+          <button class="export" data-export="risk">Risk TXT</button>
+          <button class="export" data-export="md">Draft Markdown</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const pdfInput = document.querySelector("#pdfInput");
+    const excelInput = document.querySelector("#excelInput");
+    const pdfName = document.querySelector("#pdfName");
+    const excelName = document.querySelector("#excelName");
+    const statusNode = document.querySelector("#status");
+    const resultPanel = document.querySelector("#resultPanel");
+    const analyzeBtn = document.querySelector("#analyzeBtn");
+    const demoBtn = document.querySelector("#demoBtn");
+
+    const report = {
+      project: "AI Bidding Multi-Agent System",
+      decision: { recommendation: "Bid", score: 100, high_risk_count: 1 },
+      exports: ["report.json", "score.csv", "risk.txt", "proposal.md"]
+    };
+
+    pdfInput.addEventListener("change", () => {
+      pdfName.textContent = pdfInput.files[0] ? pdfInput.files[0].name : "Choose a PDF or use demo data";
+    });
+
+    excelInput.addEventListener("change", () => {
+      excelName.textContent = excelInput.files[0] ? excelInput.files[0].name : "Choose an Excel/CSV file or use demo data";
+    });
+
+    function runDemo() {
+      const steps = [
+        "Router dispatching Skill agents...",
+        "Skill1 parsing PDF and tracing evidence...",
+        "Skill2 matching company qualifications...",
+        "Skill3 reviewing bid risks...",
+        "Skill4 generating proposal draft...",
+        "Done. Results are ready."
+      ];
+      let index = 0;
+      resultPanel.classList.add("hidden");
+      analyzeBtn.disabled = true;
+      demoBtn.disabled = true;
+      statusNode.textContent = steps[0];
+      const timer = setInterval(() => {
+        index += 1;
+        statusNode.textContent = steps[index];
+        if (index === steps.length - 1) {
+          clearInterval(timer);
+          resultPanel.classList.remove("hidden");
+          analyzeBtn.disabled = false;
+          demoBtn.disabled = false;
+        }
+      }, 420);
+    }
+
+    function downloadText(filename, text, type) {
+      const blob = new Blob([text], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll("[data-export]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const kind = button.dataset.export;
+        if (kind === "json") downloadText("report.json", JSON.stringify(report, null, 2), "application/json");
+        if (kind === "csv") downloadText("score.csv", "item,status,evidence\nBusiness license,matched,ledger\nDeposit proof,matched,ledger\nProject manager certificate,matched,ledger\n", "text/csv");
+        if (kind === "risk") downloadText("risk.txt", "High risk: missing mandatory documents may invalidate the bid.\nMitigation: use a mandatory checklist before submission.\n", "text/plain");
+        if (kind === "md") downloadText("proposal.md", document.querySelector("#draftText").textContent, "text/markdown");
+      });
+    });
+
+    analyzeBtn.addEventListener("click", runDemo);
+    demoBtn.addEventListener("click", runDemo);
+  </script>
+</body>
+</html>

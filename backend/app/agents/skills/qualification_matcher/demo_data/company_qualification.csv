@@ -1,0 +1,6 @@
+category,name,description,valid_until
+certificate,营业执照,经营范围包含软件开发与运维服务,2035-12-31
+material,投标保证金缴纳凭证,财务可在投标前出具保证金转账凭证,2026-12-31
+staff,项目经理PMP证书,项目经理张三持有PMP证书,2028-05-20
+project_case,智慧园区运维项目A,2024年智慧园区运维合同和验收报告,long-term
+staff,团队8人清单,项目经理1人 技术专家2人 运维工程师5人,2026-12-31

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pydantic[email]
+python-multipart
+pandas
+openpyxl
+pdfplumber
+pytesseract

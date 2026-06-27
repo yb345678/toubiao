@@ -1,0 +1,45 @@
+{
+  "info": {
+    "name": "AI Bidding Multi-Agent System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/health"
+      }
+    },
+    {
+      "name": "Demo Analysis",
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/api/demo"
+      }
+    },
+    {
+      "name": "Upload Analysis",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "tender_pdf",
+              "type": "file",
+              "src": "demo_data/mock_tender.pdf"
+            },
+            {
+              "key": "qualification_file",
+              "type": "file",
+              "src": "demo_data/company_qualification.xlsx"
+            }
+          ]
+        },
+        "url": "http://127.0.0.1:8000/api/analyze"
+      }
+    }
+  ]
+}

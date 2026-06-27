@@ -1,0 +1,277 @@
+.proposal-page {
+  min-height: 100vh;
+  padding: 28px;
+  background: #f4f7fb;
+  color: #182230;
+}
+
+.proposal-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #d9e2ec;
+}
+
+.proposal-eyebrow {
+  margin: 0 0 8px;
+  color: #0f766e;
+  font-weight: 900;
+}
+
+.proposal-header h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.18;
+}
+
+.proposal-header p {
+  max-width: 860px;
+  margin: 10px 0 0;
+  color: #667085;
+  line-height: 1.7;
+}
+
+.proposal-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.proposal-toolbar label {
+  display: grid;
+  gap: 8px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.proposal-toolbar select {
+  height: 44px;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  outline: none;
+}
+
+.proposal-toolbar select:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.proposal-toolbar button,
+.draft-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: #0f766e;
+  color: #fff;
+  padding: 0 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.proposal-toolbar button.secondary,
+.draft-actions button {
+  border: 1px solid #d9e2ec;
+  background: #fff;
+  color: #344054;
+}
+
+.proposal-toolbar button:disabled,
+.draft-actions button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.proposal-alert {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.proposal-alert.success {
+  border: 1px solid #b7e4dc;
+  background: #ecfdf8;
+  color: #0f766e;
+}
+
+.proposal-alert.error {
+  border: 1px solid #fecdca;
+  background: #fee4e2;
+  color: #b42318;
+}
+
+.proposal-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr .55fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.proposal-summary article,
+.proposal-side,
+.draft-panel {
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.proposal-summary article {
+  padding: 14px;
+}
+
+.proposal-summary span,
+.proposal-summary strong {
+  display: block;
+}
+
+.proposal-summary span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.proposal-summary strong {
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proposal-layout {
+  display: grid;
+  grid-template-columns: 400px minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.proposal-side,
+.draft-panel {
+  padding: 18px;
+}
+
+.outline-block + .outline-block {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #edf2f7;
+}
+
+.outline-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #0f766e;
+}
+
+.outline-title h2,
+.draft-heading h2 {
+  margin: 0;
+  color: #182230;
+  font-size: 19px;
+}
+
+.outline-block ol,
+.outline-block ul {
+  margin: 12px 0 0;
+  padding-left: 22px;
+  color: #475467;
+  line-height: 1.65;
+}
+
+.outline-block li + li {
+  margin-top: 7px;
+}
+
+.draft-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.draft-heading p {
+  margin: 6px 0 0;
+  color: #667085;
+  line-height: 1.55;
+}
+
+.draft-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.editor-shell {
+  margin-top: 16px;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.editor-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border-bottom: 1px solid #d9e2ec;
+  background: #f8fafc;
+  color: #344054;
+  font-weight: 900;
+}
+
+.editor-shell textarea {
+  width: 100%;
+  min-height: 620px;
+  resize: vertical;
+  border: 0;
+  outline: none;
+  padding: 16px;
+  color: #182230;
+  font-family: Consolas, Monaco, "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1080px) {
+  .proposal-toolbar,
+  .proposal-summary,
+  .proposal-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .proposal-header,
+  .draft-heading {
+    display: block;
+  }
+
+  .draft-actions {
+    margin-top: 12px;
+  }
+}

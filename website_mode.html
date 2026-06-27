@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI招投标多智能体系统 - 网站模式</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --ink: #182230;
+      --muted: #667085;
+      --line: #d9e2ec;
+      --teal: #0f766e;
+      --blue: #1d4ed8;
+      --amber: #b45309;
+      --red: #b42318;
+      --green: #15803d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .app {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 26px 0 46px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--teal);
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .mode {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-weight: 800;
+      color: var(--teal);
+      white-space: nowrap;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 22px;
+      align-items: stretch;
+      margin: 22px 0;
+    }
+
+    .intro,
+    .upload,
+    .metric,
+    .agent,
+    .exports,
+    .flow {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+    }
+
+    .intro {
+      padding: 24px;
+      min-height: 270px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .intro h2 {
+      margin: 0;
+      font-size: 36px;
+      line-height: 1.18;
+      max-width: 780px;
+    }
+
+    .intro p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 760px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      overflow: hidden;
+      background: var(--line);
+      margin-top: 22px;
+    }
+
+    .flow div {
+      background: #fff;
+      padding: 14px;
+      min-height: 92px;
+    }
+
+    .flow span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .flow strong {
+      font-size: 15px;
+    }
+
+    .upload {
+      padding: 18px;
+    }
+
+    .upload h3,
+    .exports h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .drop {
+      display: block;
+      border: 1px dashed #98a2b3;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      min-height: 92px;
+      background: #fbfdff;
+      cursor: pointer;
+    }
+
+    .drop span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .drop strong {
+      display: block;
+      margin-top: 10px;
+      word-break: break-word;
+    }
+
+    input[type=file] {
+      display: none;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      height: 48px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+      background: var(--teal);
+    }
+
+    button.secondary {
+      background: #334155;
+    }
+
+    .status {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #ecfdf8;
+      color: #0f766e;
+      font-weight: 800;
+      min-height: 44px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      padding: 16px;
+      min-height: 112px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 10px;
+      font-size: 28px;
+    }
+
+    .metric .ok { color: var(--green); }
+    .metric .warn { color: var(--amber); }
+    .metric .risk { color: var(--red); }
+
+    .agents {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .agent {
+      padding: 18px;
+      min-height: 330px;
+    }
+
+    .agent h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .agent h4 {
+      margin: 16px 0 8px;
+      font-size: 14px;
+      color: var(--blue);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      border-bottom: 1px solid #eef2f6;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 800;
+      background: #f8fafc;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin: 3px 4px 3px 0;
+      font-size: 12px;
+      font-weight: 800;
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .tag.red {
+      background: #fee4e2;
+      color: var(--red);
+    }
+
+    .tag.green {
+      background: #dcfce7;
+      color: var(--green);
+    }
+
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid #edf2f7;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+      font-size: 13px;
+      font-family: Consolas, "Microsoft YaHei", monospace;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .exports {
+      margin-top: 14px;
+      padding: 18px;
+    }
+
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .export-grid button {
+      background: var(--amber);
+      height: 52px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .agents,
+      .metrics,
+      .flow,
+      .export-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .intro h2 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <h1>AI招投标多智能体系统</h1>
+          <p>纯静态网站模式 · 不需要启动后端服务 · 双击即可演示</p>
+        </div>
+      </div>
+      <div class="mode">Website Mode</div>
+    </header>
+
+    <section class="hero">
+      <div class="intro">
+        <div>
+          <h2>让 Agent 进入企业投标工作流</h2>
+          <p>系统模拟上传招标PDF与企业资质台账后，由 Router 自动调度四个独立 Skill Agent，在一分钟内完成招标解析、资质匹配、风险审查和投标方案生成，适合黑客松现场无后端环境展示。</p>
+        </div>
+        <div class="flow">
+          <div><span>Step 01</span><strong>PDF解析与页码溯源</strong></div>
+          <div><span>Step 02</span><strong>资质匹配与打分</strong></div>
+          <div><span>Step 03</span><strong>废标与履约风险审查</strong></div>
+          <div><span>Step 04</span><strong>投标方案初稿生成</strong></div>
+        </div>
+      </div>
+
+      <aside class="upload">
+        <h3>现场演示入口</h3>
+        <label class="drop">
+          <span>招标PDF</span>
+          <strong id="pdfName">选择或拖入招标文件</strong>
+          <input id="pdfInput" type="file" accept=".pdf,.txt">
+        </label>
+        <label class="drop">
+          <span>企业资质库</span>
+          <strong id="excelName">选择或拖入Excel/CSV台账</strong>
+          <input id="excelInput" type="file" accept=".xlsx,.xls,.csv">
+        </label>
+        <div class="buttons">
+          <button id="analyzeBtn">模拟上传分析</button>
+          <button class="secondary" id="demoBtn">一键Demo</button>
+        </div>
+        <div class="status" id="status">等待演示指令</div>
+      </aside>
+    </section>
+
+    <section id="resultPanel" class="hidden">
+      <div class="metrics">
+        <div class="metric"><span>投标建议</span><strong class="ok">建议投标</strong></div>
+        <div class="metric"><span>资质匹配分</span><strong class="ok">100</strong></div>
+        <div class="metric"><span>高风险条款</span><strong class="risk">1</strong></div>
+        <div class="metric"><span>自动生成材料</span><strong>4份</strong></div>
+      </div>
+
+      <div class="agents">
+        <article class="agent">
+          <h3>Skill1 PDF文档解析Agent</h3>
+          <table>
+            <tr><th>字段</th><th>识别结果</th><th>页码依据</th></tr>
+            <tr><td>项目预算</td><td>380万元</td><td>第1页：项目预算：380万元</td></tr>
+            <tr><td>截标时间</td><td>2026年07月18日 09:30</td><td>第1页：截标时间</td></tr>
+            <tr><td>投标保证金</td><td>5万元</td><td>第1页：投标保证金</td></tr>
+            <tr><td>评分权重</td><td>商务30分，技术45分，价格25分</td><td>第1页：评分权重</td></tr>
+            <tr><td>废标条款</td><td>缺少营业执照、保证金凭证、项目经理证书或授权书按无效投标处理</td><td>第2页：废标条款</td></tr>
+          </table>
+          <h4>解析说明</h4>
+          <span class="tag green">全文提取</span>
+          <span class="tag green">表格识别</span>
+          <span class="tag green">页码溯源</span>
+          <span class="tag">OCR入口已预留</span>
+        </article>
+
+        <article class="agent">
+          <h3>Skill2 资质匹配打分Agent</h3>
+          <table>
+            <tr><th>门槛</th><th>状态</th><th>依据</th></tr>
+            <tr><td>营业执照</td><td><span class="tag green">完全达标</span></td><td>企业资质台账命中</td></tr>
+            <tr><td>投标保证金凭证</td><td><span class="tag green">完全达标</span></td><td>财务可开具凭证</td></tr>
+            <tr><td>项目经理证书</td><td><span class="tag green">完全达标</span></td><td>张三 PMP 证书</td></tr>
+            <tr><td>近三年类似业绩2项</td><td><span class="tag green">完全达标</span></td><td>智慧园区项目A、政务云项目B</td></tr>
+            <tr><td>团队不少于8人</td><td><span class="tag green">完全达标</span></td><td>团队8人清单</td></tr>
+          </table>
+          <h4>加分项提示</h4>
+          <pre>技术标权重较高，建议补充运维SLA、应急响应、质量保障和项目团队履历。
+商务标可强化同类项目合同、验收报告和客户评价材料。</pre>
+        </article>
+
+        <article class="agent">
+          <h3>Skill3 投标风险审查Agent</h3>
+          <table>
+            <tr><th>等级</th><th>原文依据</th><th>应对方案</th></tr>
+            <tr><td><span class="tag red">高风险</span></td><td>第2页：未提供有效营业执照、投标保证金缴纳凭证、项目经理证书或授权书的，按无效投标处理。</td><td>建立硬性材料清单，商务、法务、项目经理三方复核。</td></tr>
+            <tr><td><span class="tag">中风险</span></td><td>第2页：中标人须提供7x24小时响应，重大故障30分钟内处理。</td><td>测算驻场与响应成本，明确服务边界和升级机制。</td></tr>
+            <tr><td><span class="tag">中风险</span></td><td>第3页：未达到响应时间，采购人可按次扣减服务费。</td><td>报价中预留履约成本，合同阶段争取处罚上限。</td></tr>
+          </table>
+        </article>
+
+        <article class="agent">
+          <h3>Skill4 投标方案生成Agent</h3>
+          <pre id="draftText">## 一、投标项目概况
+
+- 项目名称：智慧园区运维服务采购项目
+- 项目预算：380万元
+- 截标时间：2026年07月18日 09:30
+- 投标保证金：5万元
+- 评分细则：商务30分，技术45分，价格25分
+
+## 二、商务标应答
+
+本公司具备本项目所需基础资质，资质匹配得分为 100分。商务标围绕营业执照、项目经理证书、保证金凭证、同类项目业绩和团队人员清单展开。
+
+## 三、技术标应答
+
+针对技术评分权重，建议以“稳定运维、快速响应、可量化SLA、风险闭环”为主线组织技术标。
+
+1. 项目理解：说明智慧园区业务连续性、设备联动和用户服务体验目标。
+2. 服务组织：设置项目经理、驻场工程师、二线专家和客户接口人。
+3. 响应机制：建立7x24值守、15分钟响应、重大故障升级和复盘机制。
+4. 质量保障：通过巡检计划、问题台账、月度报告和验收指标证明可控交付。
+5. 风险控制：对人员变更、系统故障、数据安全和供应商协同提出预案。
+
+## 四、投标结论
+
+建议投标。正式投标前完成材料盖章版复核。</pre>
+        </article>
+      </div>
+
+      <section class="exports">
+        <h3>导出全套投标辅助材料</h3>
+        <div class="export-grid">
+          <button data-export="json">完整研判报告 JSON</button>
+          <button data-export="csv">资质匹配打分 CSV</button>
+          <button data-export="risk">风险审查报告 TXT</button>
+          <button data-export="md">投标方案 Markdown</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const pdfInput = document.querySelector("#pdfInput");
+    const excelInput = document.querySelector("#excelInput");
+    const pdfName = document.querySelector("#pdfName");
+    const excelName = document.querySelector("#excelName");
+    const statusNode = document.querySelector("#status");
+    const resultPanel = document.querySelector("#resultPanel");
+    const analyzeBtn = document.querySelector("#analyzeBtn");
+    const demoBtn = document.querySelector("#demoBtn");
+
+    const report = {
+      project: "AI招投标多智能体系统",
+      workflow: "上传PDF -> 多Agent自动流转分析 -> 输出全套研判材料",
+      decision: {
+        recommendation: "建议投标",
+        score: 100,
+        qualification_status: "完全达标",
+        high_risk_count: 1
+      },
+      key_info: {
+        项目预算: "380万元",
+        截标时间: "2026年07月18日 09:30",
+        投标保证金: "5万元",
+        评分权重: "商务30分，技术45分，价格25分",
+        废标条款: "未提供有效营业执照、投标保证金缴纳凭证、项目经理证书或授权书的，按无效投标处理。"
+      },
+      qualification_checks: [
+        ["营业执照", "完全达标", "企业资质台账命中"],
+        ["投标保证金凭证", "完全达标", "财务可开具凭证"],
+        ["项目经理证书", "完全达标", "张三 PMP 证书"],
+        ["近三年类似业绩2项", "完全达标", "智慧园区项目A、政务云项目B"],
+        ["团队不少于8人", "完全达标", "团队8人清单"]
+      ],
+      risks: [
+        {
+          level: "高风险",
+          page: 2,
+          evidence: "未提供有效营业执照、投标保证金缴纳凭证、项目经理证书或授权书的，按无效投标处理。",
+          impact: "可能直接导致投标文件被否决。",
+          mitigation: "建立硬性材料清单，商务、法务、项目经理三方复核。"
+        },
+        {
+          level: "中风险",
+          page: 2,
+          evidence: "中标人须提供7x24小时响应，重大故障30分钟内处理。",
+          impact: "抬高运维交付成本。",
+          mitigation: "测算驻场与响应成本，明确服务边界和升级机制。"
+        }
+      ]
+    };
+
+    function bindName(input, node) {
+      input.addEventListener("change", () => {
+        node.textContent = input.files[0] ? input.files[0].name : "选择文件";
+      });
+    }
+
+    bindName(pdfInput, pdfName);
+    bindName(excelInput, excelName);
+
+    function runDemo(uploadMode) {
+      statusNode.textContent = "Router正在调度4个Skill Agent...";
+      resultPanel.classList.add("hidden");
+      analyzeBtn.disabled = true;
+      demoBtn.disabled = true;
+
+      const steps = [
+        "Skill1正在解析PDF并绑定页码依据...",
+        "Skill2正在读取企业资质库并计算匹配分...",
+        "Skill3正在识别废标与履约风险...",
+        "Skill4正在生成商务标、技术标初稿...",
+        "研判完成，可查看结果并导出材料。"
+      ];
+
+      let index = 0;
+      const timer = setInterval(() => {
+        statusNode.textContent = steps[index];
+        index += 1;
+        if (index >= steps.length) {
+          clearInterval(timer);
+          resultPanel.classList.remove("hidden");
+          analyzeBtn.disabled = false;
+          demoBtn.disabled = false;
+        }
+      }, uploadMode ? 520 : 360);
+    }
+
+    analyzeBtn.addEventListener("click", () => {
+      runDemo(true);
+    });
+
+    demoBtn.addEventListener("click", () => {
+      pdfName.textContent = "mock_tender.pdf";
+      excelName.textContent = "company_qualification.xlsx";
+      runDemo(false);
+    });
+
+    function downloadText(filename, text, type) {
+      const blob = new Blob([text], { type: type || "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll("[data-export]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const kind = button.dataset.export;
+        if (kind === "json") {
+          downloadText("完整投标研判报告.json", JSON.stringify(report, null, 2), "application/json;charset=utf-8");
+        }
+        if (kind === "csv") {
+          const csv = "门槛,状态,依据\n" + report.qualification_checks.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+          downloadText("资质匹配打分.csv", csv, "text/csv;charset=utf-8");
+        }
+        if (kind === "risk") {
+          const riskText = report.risks.map(r => `${r.level}｜第${r.page}页\n依据：${r.evidence}\n影响：${r.impact}\n应对：${r.mitigation}`).join("\n\n");
+          downloadText("风险审查报告.txt", riskText, "text/plain;charset=utf-8");
+        }
+        if (kind === "md") {
+          downloadText("投标方案Markdown初稿.md", document.querySelector("#draftText").textContent, "text/markdown;charset=utf-8");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
