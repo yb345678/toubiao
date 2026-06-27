@@ -1,0 +1,19 @@
+# Keep backend Vercel deployments below the 100 MB upload limit.
+*
+!backend/
+!backend/api/
+!backend/app/
+!backend/requirements.txt
+!backend/vercel.json
+!backend/.vercelignore
+
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/.env*
+backend/.vercel/
+backend/database/
+backend/uploads/
+backend/outputs/
+backend/tests/
+backend/alembic/
+backend/*.log

@@ -1,0 +1,13 @@
+.env*
+.vercel/
+database/
+uploads/
+outputs/
+tests/
+alembic/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.log
+Dockerfile
+docs_*.md
