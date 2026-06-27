@@ -48,6 +48,7 @@ class Settings:
     database_url: str = os.getenv("DATABASE_URL", _default_database_url())
     upload_dir: str = os.getenv("UPLOAD_DIR", _default_upload_dir())
     output_dir: str = os.getenv("OUTPUT_DIR", _default_output_dir())
+    blob_read_write_token: str = os.getenv("BLOB_READ_WRITE_TOKEN", "")
     static_dir: str = os.getenv("STATIC_DIR", "")
     cors_origins: str = os.getenv("CORS_ORIGINS", "*")
     frontend_url: str = os.getenv("FRONTEND_URL", "")

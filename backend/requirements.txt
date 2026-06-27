@@ -9,3 +9,4 @@ openpyxl
 pdfplumber
 pytesseract
 psycopg[binary]
+vercel_blob

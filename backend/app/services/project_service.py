@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas.enterprise import EnterpriseCreate
 from app.schemas.project import ProjectCreate
 from app.services.persistence_service import record_history, record_log
+from app.services.file_service import project_files_ready
 
 
 def create_enterprise(db: Session, user: User, payload: EnterpriseCreate) -> Enterprise:
@@ -59,14 +60,28 @@ def create_project(db: Session, user: User, payload: ProjectCreate) -> Project:
     return project
 
 
+def normalize_project_status(project: Project) -> Project:
+    if project.status in {"created", "draft", "partial_uploaded", "uploaded"}:
+        if project_files_ready(project):
+            project.status = "uploaded"
+        elif project.tender_file_url or project.qualification_file_url:
+            project.status = "partial_uploaded"
+        else:
+            project.status = "created"
+    return project
+
+
 def list_projects(db: Session, user: User) -> list[Project]:
-    return (
+    projects = (
         db.query(Project)
         .join(Enterprise, Project.enterprise_id == Enterprise.id)
         .filter(Enterprise.owner_user_id == user.id, Project.deleted_at.is_(None))
         .order_by(Project.created_at.desc())
         .all()
     )
+    for project in projects:
+        normalize_project_status(project)
+    return projects
 
 
 def get_project_for_user(db: Session, user: User, project_id: str) -> Project:
@@ -76,4 +91,4 @@ def get_project_for_user(db: Session, user: User, project_id: str) -> Project:
     enterprise = db.get(Enterprise, project.enterprise_id)
     if not enterprise or enterprise.owner_user_id != user.id:
         raise not_found("Project not found")
-    return project
+    return normalize_project_status(project)

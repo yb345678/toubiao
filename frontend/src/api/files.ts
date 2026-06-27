@@ -6,6 +6,7 @@ export interface ProjectFile {
   file_type: ProjectFileType | string;
   original_name?: string | null;
   stored_path: string;
+  file_url?: string | null;
   size: number;
   content_type?: string | null;
 }

@@ -21,6 +21,11 @@ class ProjectRead(BaseModel):
     name: str
     tender_name: str | None
     tender_company: str | None
+    tender_file_url: str | None = None
+    tender_file_name: str | None = None
+    qualification_file_url: str | None = None
+    qualification_file_name: str | None = None
+    files_ready: bool = False
     status: str
     latest_score: int | None
     latest_recommendation: str | None

@@ -7,6 +7,7 @@ class ProjectFileRead(BaseModel):
     file_type: str
     original_name: str | None = None
     stored_path: str
+    file_url: str | None = None
     size: int
     content_type: str | None = None
 

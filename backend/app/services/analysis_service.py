@@ -14,11 +14,14 @@ from app.models.analysis import Analysis
 from app.models.project import Project
 from app.models.user import User
 from app.services.persistence_service import persist_proposal, persist_risks, record_history, record_log
+from app.services.blob_service import download_url_to_tmp, remove_tmp_file
+from app.services.file_service import missing_required_files
 
 
 def start_analysis(db: Session, user: User, project: Project) -> Analysis:
-    if not project.tender_pdf_path or not project.qualification_file_path:
-        raise bad_request("Tender PDF and qualification file are required")
+    missing = missing_required_files(project)
+    if missing:
+        raise bad_request("Missing required files: " + "、".join(missing))
 
     analysis = Analysis(
         project_id=project.id,
@@ -64,7 +67,19 @@ def start_analysis(db: Session, user: User, project: Project) -> Analysis:
             except SQLAlchemyError:
                 db.rollback()
 
-        result = run_analysis_workflow(project.tender_pdf_path, project.qualification_file_path, progress_callback=update_progress)
+        tender_tmp = None
+        qualification_tmp = None
+        try:
+            tender_tmp = download_url_to_tmp(project.tender_file_url, Path(project.tender_file_name or "tender.pdf").suffix, "tender_pdf")
+            qualification_tmp = download_url_to_tmp(
+                project.qualification_file_url,
+                Path(project.qualification_file_name or "qualification.xlsx").suffix,
+                "qualification_file",
+            )
+            result = run_analysis_workflow(str(tender_tmp), str(qualification_tmp), progress_callback=update_progress)
+        finally:
+            remove_tmp_file(tender_tmp)
+            remove_tmp_file(qualification_tmp)
         analysis.status = "completed"
         analysis.progress = 100
         analysis.current_step = "completed"

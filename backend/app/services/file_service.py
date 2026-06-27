@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 from app.core.config import settings
 from app.core.exceptions import FileFormatError, bad_request, not_found
+from app.services.blob_service import delete_blob, is_blob_enabled, upload_blob
 from app.utils.file_utils import unique_filename
 
 
@@ -35,51 +36,92 @@ def validate_upload(file_type: str, upload: "UploadFile") -> str:
 
 def save_project_file(project: "Project", upload: "UploadFile", file_type: str) -> dict:
     suffix = validate_upload(file_type, upload)
-    base = _project_upload_dir(project)
-    base.mkdir(parents=True, exist_ok=True)
-
     original_name = upload.filename or f"{file_type}{suffix}"
-    target = base / unique_filename(file_type, original_name)
     max_bytes = settings.max_upload_size_mb * 1024 * 1024
-    written = 0
+    data = upload.file.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        raise FileFormatError(f"File too large; max size is {settings.max_upload_size_mb} MB")
 
-    with target.open("wb") as handle:
-        while True:
-            chunk = upload.file.read(1024 * 1024)
-            if not chunk:
-                break
-            written += len(chunk)
-            if written > max_bytes:
-                handle.close()
-                target.unlink(missing_ok=True)
-                raise FileFormatError(f"File too large; max size is {settings.max_upload_size_mb} MB")
-            handle.write(chunk)
+    if is_blob_enabled():
+        blob = upload_blob(project.id, file_type, original_name, data, upload.content_type)
+        stored_path = blob["url"]
+        file_url = blob["url"]
+    else:
+        base = _project_upload_dir(project)
+        base.mkdir(parents=True, exist_ok=True)
+        target = base / unique_filename(file_type, original_name)
+        target.write_bytes(data)
+        stored_path = str(target)
+        file_url = None
 
     return {
         "file_type": file_type,
         "original_name": upload.filename,
-        "stored_path": str(target),
-        "size": written,
+        "stored_path": stored_path,
+        "file_url": file_url,
+        "size": len(data),
         "content_type": upload.content_type,
     }
+
+
+def apply_project_file(project: "Project", saved: dict) -> None:
+    file_type = saved["file_type"]
+    if file_type == "tender_pdf":
+        project.tender_pdf_path = saved["stored_path"]
+        project.tender_file_url = saved.get("file_url") or saved["stored_path"]
+        project.tender_file_name = saved.get("original_name")
+        project.tender_file_size = saved.get("size")
+        project.tender_file_content_type = saved.get("content_type")
+    elif file_type == "qualification_excel":
+        project.qualification_file_path = saved["stored_path"]
+        project.qualification_file_url = saved.get("file_url") or saved["stored_path"]
+        project.qualification_file_name = saved.get("original_name")
+        project.qualification_file_size = saved.get("size")
+        project.qualification_file_content_type = saved.get("content_type")
+    project.status = "uploaded" if project_files_ready(project) else "partial_uploaded"
+
+
+def project_files_ready(project: "Project") -> bool:
+    return bool(project.tender_file_url and project.qualification_file_url)
+
+
+def missing_required_files(project: "Project") -> list[str]:
+    missing: list[str] = []
+    if not project.tender_file_url:
+        missing.append("招标 PDF")
+    if not project.qualification_file_url:
+        missing.append("企业资质台账")
+    return missing
 
 
 def list_project_files(project: "Project") -> list[dict]:
     items: list[dict] = []
     mapping = {
-        "tender_pdf": project.tender_pdf_path,
-        "qualification_excel": project.qualification_file_path,
+        "tender_pdf": {
+            "url": project.tender_file_url or project.tender_pdf_path,
+            "name": project.tender_file_name,
+            "size": project.tender_file_size,
+            "content_type": project.tender_file_content_type,
+        },
+        "qualification_excel": {
+            "url": project.qualification_file_url or project.qualification_file_path,
+            "name": project.qualification_file_name,
+            "size": project.qualification_file_size,
+            "content_type": project.qualification_file_content_type,
+        },
     }
-    for file_type, stored_path in mapping.items():
+    for file_type, info in mapping.items():
+        stored_path = info["url"]
         if stored_path:
-            path = Path(stored_path)
+            path = Path(str(stored_path))
             items.append(
                 {
                     "file_type": file_type,
-                    "original_name": path.name,
-                    "stored_path": str(path),
-                    "size": path.stat().st_size if path.exists() else 0,
-                    "content_type": None,
+                    "original_name": info["name"] or path.name,
+                    "stored_path": str(stored_path),
+                    "file_url": str(stored_path) if str(stored_path).startswith("http") else None,
+                    "size": info["size"] or (path.stat().st_size if path.exists() else 0),
+                    "content_type": info["content_type"],
                 }
             )
     material_dir = _project_upload_dir(project)
@@ -105,10 +147,37 @@ def get_project_file_path(project: "Project", file_type: str) -> Path:
     raise not_found("File not found")
 
 
-def delete_project_file(project: "Project", file_type: str) -> None:
-    path = get_project_file_path(project, file_type)
-    path.unlink(missing_ok=True)
+def get_project_file_url(project: "Project", file_type: str) -> str:
     if file_type == "tender_pdf":
+        url = project.tender_file_url or project.tender_pdf_path
+    elif file_type == "qualification_excel":
+        url = project.qualification_file_url or project.qualification_file_path
+    else:
+        url = None
+    if not url:
+        raise not_found("File not found")
+    return url
+
+
+def delete_project_file(project: "Project", file_type: str) -> None:
+    if file_type == "tender_pdf":
+        if project.tender_file_url:
+            delete_blob(project.tender_file_url)
+        elif project.tender_pdf_path:
+            Path(project.tender_pdf_path).unlink(missing_ok=True)
         project.tender_pdf_path = None
+        project.tender_file_url = None
+        project.tender_file_name = None
+        project.tender_file_size = None
+        project.tender_file_content_type = None
     if file_type == "qualification_excel":
+        if project.qualification_file_url:
+            delete_blob(project.qualification_file_url)
+        elif project.qualification_file_path:
+            Path(project.qualification_file_path).unlink(missing_ok=True)
         project.qualification_file_path = None
+        project.qualification_file_url = None
+        project.qualification_file_name = None
+        project.qualification_file_size = None
+        project.qualification_file_content_type = None
+    project.status = "uploaded" if project_files_ready(project) else "partial_uploaded"

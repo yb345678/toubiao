@@ -144,6 +144,15 @@ export function AnalysisPage() {
       showToast("请先选择一个项目", "error");
       return;
     }
+    const missing: string[] = [];
+    if (!selectedProject?.tender_file_url) missing.push("招标 PDF");
+    if (!selectedProject?.qualification_file_url) missing.push("企业资质台账");
+    if (missing.length > 0) {
+      const msg = `无法开始分析，缺少：${missing.join("、")}。请先到上传页面补齐文件。`;
+      setError(msg);
+      showToast(msg, "error");
+      return;
+    }
     setRunning(true);
     setError("");
     setMessage("");

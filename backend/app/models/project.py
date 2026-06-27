@@ -19,6 +19,14 @@ class Project(IdMixin, TimestampMixin, Base):
     tender_deadline: Mapped[object | None] = mapped_column(DateTime)
     tender_pdf_path: Mapped[str | None] = mapped_column(String(1000))
     qualification_file_path: Mapped[str | None] = mapped_column(String(1000))
+    tender_file_url: Mapped[str | None] = mapped_column(String(2000))
+    tender_file_name: Mapped[str | None] = mapped_column(String(500))
+    tender_file_size: Mapped[int | None] = mapped_column(Integer)
+    tender_file_content_type: Mapped[str | None] = mapped_column(String(255))
+    qualification_file_url: Mapped[str | None] = mapped_column(String(2000))
+    qualification_file_name: Mapped[str | None] = mapped_column(String(500))
+    qualification_file_size: Mapped[int | None] = mapped_column(Integer)
+    qualification_file_content_type: Mapped[str | None] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(50), default="created", index=True)
     latest_score: Mapped[int | None] = mapped_column(Integer)
     latest_recommendation: Mapped[str | None] = mapped_column(String(100))
@@ -31,3 +39,7 @@ class Project(IdMixin, TimestampMixin, Base):
     analyses = relationship("Analysis", back_populates="project")
     risks = relationship("Risk", back_populates="project")
     proposals = relationship("Proposal", back_populates="project")
+
+    @property
+    def files_ready(self) -> bool:
+        return bool(self.tender_file_url and self.qualification_file_url)

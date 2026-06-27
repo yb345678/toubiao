@@ -21,6 +21,11 @@ export interface Project {
   name: string;
   tender_name?: string | null;
   tender_company?: string | null;
+  tender_file_url?: string | null;
+  tender_file_name?: string | null;
+  qualification_file_url?: string | null;
+  qualification_file_name?: string | null;
+  files_ready?: boolean;
   status: string;
   latest_score?: number | null;
   latest_recommendation?: string | null;
