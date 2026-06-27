@@ -189,3 +189,4 @@ playwright-report/
 
 .vercel
 .env*
+!frontend/.env.production

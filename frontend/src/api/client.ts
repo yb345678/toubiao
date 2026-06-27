@@ -1,6 +1,9 @@
 import axios, { AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from "axios";
+import { clearToken, getRefreshToken, getToken, setAuthTokens } from "../store/authStore";
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
+const PUBLIC_PATHS = ["/health", "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh"];
 
 export class ApiError extends Error {
   status: number;
@@ -21,10 +24,38 @@ export const httpClient = axios.create({
 
 let refreshPromise: Promise<string> | null = null;
 
+function requestPath(url?: string): string {
+  if (!url) return "";
+  if (url.startsWith("http")) {
+    try {
+      return new URL(url).pathname;
+    } catch {
+      return url;
+    }
+  }
+  return url.split("?")[0];
+}
+
+function isPublicRequest(url?: string): boolean {
+  const path = requestPath(url);
+  return PUBLIC_PATHS.some((publicPath) => path === publicPath || path.startsWith(`${publicPath}?`));
+}
+
+function redirectToLogin() {
+  if (typeof window === "undefined") return;
+  const currentPath = `${window.location.pathname}${window.location.search}`;
+  if (window.location.pathname === "/login") return;
+  window.location.assign(`/login?next=${encodeURIComponent(currentPath)}`);
+}
+
 httpClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+  const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (!isPublicRequest(config.url)) {
+    clearToken();
+    redirectToLogin();
+    throw new ApiError("请先登录后再继续操作。", 401);
   }
   return config;
 });
@@ -45,11 +76,10 @@ httpClient.interceptors.response.use(
       error.response.status === 401 &&
       originalRequest &&
       !originalRequest._retry &&
-      originalRequest.url !== "/api/v1/auth/login" &&
-      originalRequest.url !== "/api/v1/auth/refresh"
+      !isPublicRequest(originalRequest.url)
     ) {
       originalRequest._retry = true;
-      const refreshToken = localStorage.getItem("refresh_token");
+      const refreshToken = getRefreshToken();
       if (refreshToken) {
         try {
           if (!refreshPromise) {
@@ -61,11 +91,12 @@ httpClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return httpClient.request(originalRequest);
         } catch {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-          localStorage.removeItem("current_user");
+          clearToken();
         }
       }
+      clearToken();
+      redirectToLogin();
+      throw new ApiError("登录已过期，请重新登录。", 401, error.response.data);
     }
 
     const data = error.response.data as { code?: string; detail?: string; error?: string; message?: string } | string | undefined;
@@ -90,8 +121,7 @@ async function refreshAccessToken(refreshToken: string): Promise<string> {
     refresh_token: refreshToken
   });
 
-  localStorage.setItem("access_token", response.data.access_token);
-  localStorage.setItem("refresh_token", response.data.refresh_token);
+  setAuthTokens(response.data.access_token, response.data.refresh_token);
   return response.data.access_token;
 }
 
