@@ -270,3 +270,102 @@ UPLOAD_DIR=/tmp/uploads
 OUTPUT_DIR=/tmp/outputs
 MAX_UPLOAD_SIZE_MB=50
 ```
+
+## Vercel 公网部署
+
+本项目也支持在 Vercel 上拆成两个项目部署：
+
+- 后端项目：FastAPI Serverless Functions
+- 前端项目：Vite Static Site
+
+### 后端 Vercel 项目
+
+在 Vercel 新建后端项目时选择同一个 GitHub 仓库，并设置：
+
+```text
+Root Directory: backend
+Framework Preset: Other
+Build Command: 留空或使用默认
+Output Directory: 留空
+Install Command: pip install -r requirements.txt
+```
+
+后端入口文件是：
+
+```text
+backend/api/index.py
+```
+
+后端配置文件是：
+
+```text
+backend/vercel.json
+```
+
+后端必须配置环境变量：
+
+```text
+JWT_SECRET=your-long-random-secret
+FRONTEND_URL=https://your-frontend.vercel.app
+DATABASE_URL=your-managed-postgresql-url
+```
+
+可选环境变量：
+
+```text
+APP_NAME=AI Bidding Multi-Agent Platform
+API_V1_PREFIX=/api/v1
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+REFRESH_TOKEN_EXPIRE_MINUTES=10080
+CORS_ORIGINS=
+MAX_UPLOAD_SIZE_MB=50
+UPLOAD_DIR=/tmp/uploads
+OUTPUT_DIR=/tmp/outputs
+```
+
+后端部署完成后，健康检查地址应为：
+
+```text
+https://your-backend.vercel.app/health
+```
+
+### 前端 Vercel 项目
+
+在 Vercel 新建前端项目时选择同一个 GitHub 仓库，并设置：
+
+```text
+Root Directory: frontend
+Framework Preset: Vite
+Install Command: npm install
+Build Command: npm run build
+Output Directory: dist
+```
+
+前端配置文件是：
+
+```text
+frontend/vercel.json
+```
+
+它提供 SPA 路由回退，刷新 `/dashboard`、`/analysis`、`/risks` 等页面不会出现 404。
+
+前端必须配置环境变量：
+
+```text
+VITE_API_BASE_URL=https://your-backend.vercel.app
+```
+
+### Vercel 限制说明
+
+Vercel Serverless Functions 不适合依赖本地持久化文件系统：
+
+- SQLite 本地文件在 Vercel 上不适合作为生产数据库。请使用 Vercel Postgres、Neon、Supabase 或其他托管 PostgreSQL，并通过 `DATABASE_URL` 配置。
+- `uploads` 和 `outputs` 目录在 Vercel 上只能作为临时目录使用，函数实例重启后文件可能丢失。生产环境应接入 S3、Cloudflare R2、阿里云 OSS、腾讯云 COS 等对象存储。
+- 当前代码仍保留 `/tmp/uploads` 和 `/tmp/outputs` 作为 Vercel 演示级临时文件存储，因此登录、注册、项目管理、上传、解析和 Agent API 可以运行，但上传文件和导出文件不保证长期保存。
+- OCR 依赖 `pytesseract` 的系统级 `tesseract` 命令。Vercel Python Serverless 环境通常不适合安装系统 OCR 二进制。普通文本 PDF 可解析，扫描件 OCR 建议使用 Docker/Hugging Face 部署，或改接云 OCR 服务。
+
+本地 Docker 运行方式仍然保留：
+
+```bash
+docker compose up --build
+```
