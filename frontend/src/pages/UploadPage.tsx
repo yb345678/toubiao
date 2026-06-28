@@ -4,12 +4,13 @@ import {
   ArrowLeft,
   Building2,
   CheckCircle2,
+  Download,
   FileSpreadsheet,
   FileText,
   FileUp,
   FolderPlus,
   Loader2,
-  Download,
+  ShieldCheck,
   Trash2,
   UploadCloud
 } from "lucide-react";
@@ -31,24 +32,37 @@ type UploadSlot = {
   help: string;
   accept: string;
   icon: typeof FileText;
+  tag: string;
 };
 
 const uploadSlots: UploadSlot[] = [
   {
     key: "tender_pdf",
     title: "招标 PDF",
-    help: "上传招标文件原文，推荐使用 PDF 格式。",
+    help: "上传招标文件原文，系统将解析全文、表格、评分细则和废标条款。",
     accept: ".pdf,application/pdf",
-    icon: FileText
+    icon: FileText,
+    tag: "必需"
   },
   {
     key: "qualification_excel",
     title: "企业资质台账",
-    help: "上传企业证书、人员、业绩等资质台账。",
+    help: "上传企业证书、业绩、人员、设备等资质台账，建议使用 xlsx 格式。",
     accept: ".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel",
-    icon: FileSpreadsheet
+    icon: FileSpreadsheet,
+    tag: "必需"
   }
 ];
+
+const statusLabel: Record<string, string> = {
+  draft: "草稿",
+  created: "已创建",
+  partial_uploaded: "待补文件",
+  uploaded: "资料已齐全",
+  analyzing: "分析中",
+  completed: "已完成",
+  failed: "失败"
+};
 
 export function UploadPage() {
   const navigate = useNavigate();
@@ -95,7 +109,7 @@ export function UploadPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -110,6 +124,8 @@ export function UploadPage() {
     [projects, selectedProjectId]
   );
 
+  const uploadReady = uploadSlots.every((slot) => Boolean(fileFor(slot.key)));
+
   async function handleCreateProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -120,7 +136,7 @@ export function UploadPage() {
       if (!enterprise) {
         enterprise = await createEnterprise({
           name: enterpriseName,
-          industry: "Information Technology",
+          industry: "信息技术服务",
           contact_name: "演示负责人"
         });
         setEnterprises([enterprise]);
@@ -134,7 +150,7 @@ export function UploadPage() {
       });
       setProjects((current) => [project, ...current]);
       setSelectedProjectId(project.id);
-      setMessage("项目已创建，可以上传文件。");
+      setMessage("项目已创建，可以上传招标 PDF 和资质台账。");
       showToast("项目已创建，可以上传文件。", "success");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "项目创建失败";
@@ -165,7 +181,15 @@ export function UploadPage() {
       });
       setFiles((current) => [saved, ...current.filter((item) => item.file_type !== fileType)]);
       setProjects((current) =>
-        current.map((project) => (project.id === selectedProjectId ? { ...project, status: "uploaded" } : project))
+        current.map((project) =>
+          project.id === selectedProjectId
+            ? {
+                ...project,
+                status: fileType === "tender_pdf" ? "partial_uploaded" : "uploaded",
+                files_ready: true
+              }
+            : project
+        )
       );
       setMessage(`${saved.original_name || file.name} 上传成功。`);
       showToast(`${saved.original_name || file.name} 上传成功。`, "success");
@@ -197,8 +221,8 @@ export function UploadPage() {
     try {
       await deleteProjectFile(selectedProjectId, fileType);
       setFiles((current) => current.filter((item) => item.file_type !== fileType));
-      setMessage(`${fileType} 已删除。`);
-      showToast(`${fileType} 已删除。`, "success");
+      setMessage("文件已删除。");
+      showToast("文件已删除。", "success");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "删除失败";
       setError(msg);
@@ -220,9 +244,9 @@ export function UploadPage() {
           返回工作台
         </button>
         <div>
-          <p className="upload-eyebrow">文件上传流程</p>
-          <h1>上传招标材料</h1>
-          <p>创建投标项目，上传招标 PDF 与企业资质台账，然后进入自动分析流程。</p>
+          <p className="upload-eyebrow">Document Intake</p>
+          <h1>上传投标分析资料</h1>
+          <p>创建投标项目，上传招标 PDF 与企业资质台账。文件上传完成后即可进入 Router 调度分析流程。</p>
         </div>
       </header>
 
@@ -231,8 +255,8 @@ export function UploadPage() {
           <div className="panel-title">
             <Building2 size={22} />
             <div>
-              <h2>项目信息</h2>
-              <p>选择已有项目，或创建一个新的演示项目。</p>
+              <h2>项目档案</h2>
+              <p>选择已有项目，或快速创建一个新的演示项目。</p>
             </div>
           </div>
 
@@ -271,17 +295,16 @@ export function UploadPage() {
         <section className="file-panel">
           <div className="file-panel-heading">
             <div>
+              <p className="upload-eyebrow">Required Files</p>
               <h2>{selectedProject ? selectedProject.name : "未选择项目"}</h2>
-              <p>文件类型由后端上传服务校验。</p>
+              <p>两份核心文件都上传后，系统才能启动完整分析。</p>
             </div>
-            <span className="project-status">{selectedProject?.status || "waiting"}</span>
+            <span className={`project-status ${selectedProject?.status || "waiting"}`}>
+              {statusLabel[selectedProject?.status || ""] || "等待上传"}
+            </span>
           </div>
 
-          {(error || message) && (
-            <div className={error ? "upload-alert error" : "upload-alert success"}>
-              {error || message}
-            </div>
-          )}
+          {(error || message) && <div className={error ? "upload-alert error" : "upload-alert success"}>{error || message}</div>}
 
           <div className="upload-slots">
             {uploadSlots.map((slot) => {
@@ -290,12 +313,15 @@ export function UploadPage() {
               const isUploading = uploading === slot.key;
               const percent = uploadProgress[slot.key];
               return (
-                <article className="upload-slot" key={slot.key}>
+                <article className={`upload-slot ${savedFile ? "completed" : ""}`} key={slot.key}>
                   <div className="slot-icon">
                     <Icon size={24} />
                   </div>
                   <div className="slot-copy">
-                    <h3>{slot.title}</h3>
+                    <div className="slot-title-line">
+                      <h3>{slot.title}</h3>
+                      <span>{slot.tag}</span>
+                    </div>
                     <p>{slot.help}</p>
                     {savedFile && (
                       <div className="saved-file">
@@ -326,7 +352,7 @@ export function UploadPage() {
                   ) : null}
                   <label className={selectedProjectId ? "upload-button" : "upload-button disabled"}>
                     {isUploading ? <Loader2 size={18} className="spin" /> : <UploadCloud size={18} />}
-                    {isUploading ? "上传中" : "选择文件"}
+                    {isUploading ? "上传中" : savedFile ? "重新上传" : "选择文件"}
                     <input
                       type="file"
                       accept={slot.accept}
@@ -339,11 +365,11 @@ export function UploadPage() {
             })}
           </div>
 
-          <button className="next-step-box" onClick={() => navigate("/analysis")}>
-            <FileUp size={22} />
+          <button className={`next-step-box ${uploadReady ? "ready" : ""}`} onClick={() => navigate("/analysis")}>
+            {uploadReady ? <ShieldCheck size={22} /> : <FileUp size={22} />}
             <div>
-              <strong>下一步</strong>
-              <span>两个核心文件上传完成后，进入分析页调度 Router 和四个解耦 Skill。</span>
+              <strong>{uploadReady ? "资料已齐全，进入分析" : "下一步：启动 Agent 分析"}</strong>
+              <span>系统将调度 PDF 解析、资质匹配、风险审查和投标方案生成四个 Skill。</span>
             </div>
           </button>
         </section>

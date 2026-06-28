@@ -1,6 +1,15 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Bot, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  FileSearch,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  Sparkles
+} from "lucide-react";
 import { getMe, login } from "../api/auth";
 import { setAuthTokens, setCachedUser } from "../store/authStore";
 import "../styles/auth.css";
@@ -20,17 +29,17 @@ export function LoginPage() {
     try {
       const token = await login({ email, password });
       if (typeof token.access_token !== "string" || !token.access_token.trim()) {
-        throw new Error("登录接口未返回有效 access_token。");
+        throw new Error("登录接口未返回有效 access_token");
       }
       if (typeof token.refresh_token !== "string" || !token.refresh_token.trim()) {
-        throw new Error("登录接口未返回有效 refresh_token。");
+        throw new Error("登录接口未返回有效 refresh_token");
       }
       setAuthTokens(token.access_token, token.refresh_token);
       const user = await getMe();
       setCachedUser(user);
       navigate(searchParams.get("next") || "/dashboard", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "登录失败");
+      setError(err instanceof Error ? err.message : "登录失败，请检查账号或后端服务状态");
     } finally {
       setLoading(false);
     }
@@ -39,26 +48,59 @@ export function LoginPage() {
   return (
     <main className="auth-page">
       <section className="auth-hero">
-        <div className="brand-mark">
-          <Bot size={30} />
+        <div className="hero-topline">
+          <div className="brand-mark">
+            <Bot size={30} />
+          </div>
+          <span className="live-badge">
+            <Sparkles size={15} />
+            Multi-Agent Bidding Platform
+          </span>
         </div>
+
         <p className="eyebrow">AI 招投标多智能体系统</p>
-        <h1>上传招标文件，一键完成投标研判。</h1>
+        <h1>让招标文件自动进入企业投标研判流程</h1>
         <p className="hero-copy">
-          登录后创建投标项目，上传招标 PDF 与企业资质台账，系统将自动调度
-          PDF 解析、资质匹配、风险审查和投标方案生成四个 Agent。
+          上传招标 PDF 与企业资质台账，系统自动完成 PDF 解析、资质匹配、风险审查和投标方案生成，
+          为黑客松路演提供一套可演示、可追溯、可导出的企业级工作台。
         </p>
+
+        <div className="hero-metrics" aria-label="平台能力概览">
+          <div>
+            <strong>4</strong>
+            <span>独立 Agent</span>
+          </div>
+          <div>
+            <strong>60s</strong>
+            <span>快速研判</span>
+          </div>
+          <div>
+            <strong>100%</strong>
+            <span>本地/私有化流程</span>
+          </div>
+        </div>
+
         <div className="hero-points">
-          <span><ShieldCheck size={16} /> JWT 安全登录</span>
-          <span><ShieldCheck size={16} /> 多 Agent 自动流转</span>
-          <span><ShieldCheck size={16} /> 本地化 Docker 部署</span>
+          <span>
+            <ShieldCheck size={16} />
+            JWT 安全登录
+          </span>
+          <span>
+            <FileSearch size={16} />
+            页码级原文溯源
+          </span>
+          <span>
+            <CheckCircle2 size={16} />
+            一键导出报告
+          </span>
         </div>
       </section>
 
       <section className="auth-card" aria-label="登录表单">
         <div className="card-heading">
-          <h2>登录系统</h2>
-          <p>使用企业账号进入投标分析工作台。</p>
+          <p className="card-kicker">Workspace Login</p>
+          <h2>登录工作台</h2>
+          <p>使用企业账号进入投标分析控制台。</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -95,12 +137,13 @@ export function LoginPage() {
           {error && <div className="form-error">{error}</div>}
 
           <button disabled={loading} type="submit">
-            {loading ? "登录中..." : "登录"}
+            {loading ? "正在登录..." : "进入系统"}
+            {!loading && <ArrowRight size={18} />}
           </button>
         </form>
 
         <p className="switch-link">
-          还没有账号？ <Link to="/register">创建账号</Link>
+          还没有账号？ <Link to="/register">创建企业账号</Link>
         </p>
       </section>
     </main>

@@ -6,12 +6,15 @@ import {
   BarChart3,
   Bot,
   CheckCircle2,
-  Settings,
+  FileText,
   FileUp,
   FolderKanban,
   LogOut,
   Plus,
-  Timer
+  Settings,
+  ShieldCheck,
+  Timer,
+  TrendingUp
 } from "lucide-react";
 import { getDashboardSummary, type DashboardSummary } from "../api/dashboard";
 import { listProjects, type Project } from "../api/projects";
@@ -28,11 +31,21 @@ const fallbackSummary: DashboardSummary = {
 };
 
 const agentSteps = [
-  { label: "PDF 解析", desc: "全文、表格与页码溯源" },
-  { label: "资质匹配", desc: "硬性门槛与评分计算" },
-  { label: "风险审查", desc: "废标、成本与合同风险" },
-  { label: "投标方案", desc: "商务标与技术标初稿" }
+  { label: "PDF 解析", desc: "抽取全文、表格、页码和关键条款", icon: FileText },
+  { label: "资质匹配", desc: "校验硬性门槛并计算匹配得分", icon: ShieldCheck },
+  { label: "风险审查", desc: "识别废标、成本和合同风险", icon: AlertTriangle },
+  { label: "方案生成", desc: "生成商务标与技术标写作初稿", icon: Bot }
 ];
+
+const statusLabel: Record<string, string> = {
+  draft: "草稿",
+  created: "已创建",
+  partial_uploaded: "待补文件",
+  uploaded: "资料已上传",
+  analyzing: "分析中",
+  completed: "已完成",
+  failed: "失败"
+};
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -68,10 +81,10 @@ export function DashboardPage() {
 
   const cards = useMemo(
     () => [
-      { label: "项目总数", value: summary.project_count, icon: FolderKanban, tone: "teal" },
-      { label: "已完成", value: summary.completed_count, icon: CheckCircle2, tone: "green" },
-      { label: "运行中", value: summary.running_count, icon: Timer, tone: "blue" },
-      { label: "高风险", value: summary.high_risk_count ?? 0, icon: AlertTriangle, tone: "amber" }
+      { label: "项目总数", value: summary.project_count, icon: FolderKanban, tone: "teal", hint: "全部投标项目" },
+      { label: "已完成", value: summary.completed_count, icon: CheckCircle2, tone: "green", hint: "已生成研判报告" },
+      { label: "运行中", value: summary.running_count, icon: Timer, tone: "blue", hint: "Agent 正在处理" },
+      { label: "高风险", value: summary.high_risk_count ?? 0, icon: AlertTriangle, tone: "amber", hint: "需优先复核" }
     ],
     [summary]
   );
@@ -84,27 +97,41 @@ export function DashboardPage() {
   return (
     <main className="dashboard-page">
       <header className="dashboard-header">
-        <div>
+        <div className="header-copy">
           <p className="dashboard-eyebrow">AI 招投标多智能体系统</p>
-          <h1>投标研判工作台</h1>
+          <h1>企业投标研判工作台</h1>
           <p>
-            欢迎回来，{user?.username || "用户"}。创建项目、上传招标文件，
-            即可启动多 Agent 投标分析流程。
+            欢迎回来，{user?.username || "用户"}。从资料上传到风险审查、资质评分、投标方案生成，
+            全流程由 Router 调度四个独立 Agent 自动完成。
           </p>
         </div>
-        <button className="ghost-button" onClick={logout}>
-          <LogOut size={18} />
-          退出
-        </button>
-        <button className="ghost-button" onClick={() => navigate("/admin")}>
-          <Settings size={18} />
-          管理后台
-        </button>
+        <div className="header-actions">
+          <button className="ghost-button" onClick={() => navigate("/admin")}>
+            <Settings size={18} />
+            管理后台
+          </button>
+          <button className="ghost-button danger" onClick={logout}>
+            <LogOut size={18} />
+            退出
+          </button>
+        </div>
       </header>
+
+      <section className="hero-command">
+        <div>
+          <span className="command-label">Router Orchestration</span>
+          <h2>上传 PDF 后，系统自动完成投标可行性研判</h2>
+          <p>支持招标解析、资质台账匹配、风险分级、投标初稿生成和报告导出，适合现场路演直接演示完整闭环。</p>
+        </div>
+        <button onClick={() => navigate("/upload")}>
+          <Plus size={18} />
+          新建投标项目
+        </button>
+      </section>
 
       <section className="status-strip">
         <span>{loading ? "正在加载工作台数据..." : apiStatus}</span>
-        <strong>JWT 已启用</strong>
+        <strong>JWT 已启用 · API 已连接</strong>
       </section>
 
       <section className="metric-grid">
@@ -116,10 +143,13 @@ export function DashboardPage() {
               key={card.label}
               onClick={card.label === "高风险" ? () => navigate("/risks") : undefined}
             >
-              <div className="metric-icon">
-                <Icon size={20} />
+              <div className="metric-top">
+                <div className="metric-icon">
+                  <Icon size={20} />
+                </div>
+                <span>{card.hint}</span>
               </div>
-              <span>{card.label}</span>
+              <p>{card.label}</p>
               <strong>{card.value}</strong>
             </article>
           );
@@ -130,47 +160,56 @@ export function DashboardPage() {
         <article className="work-panel">
           <div className="panel-heading">
             <div>
-              <h2>快速开始</h2>
-              <p>创建投标项目，上传招标 PDF 与企业资质台账。</p>
+              <h2>多 Agent 执行链路</h2>
+              <p>四个 Skill 完全解耦，可独立调试，也可由 Router 串联执行。</p>
             </div>
-          </div>
-          <div className="quick-actions">
-            <button onClick={() => navigate("/upload")}>
-              <Plus size={18} />
-              新建项目
-            </button>
-            <button className="secondary" onClick={() => navigate("/upload")}>
-              <FileUp size={18} />
-              上传文件
-            </button>
-            <button className="secondary" onClick={() => navigate("/analysis")}>
-              <Bot size={18} />
+            <button className="link-button" onClick={() => navigate("/analysis")}>
               开始分析
+              <ArrowRight size={16} />
             </button>
           </div>
 
           <div className="agent-flow">
-            {agentSteps.map((step, index) => (
-              <button
-                className="agent-step"
-                key={step.label}
-                onClick={step.label === "投标方案" ? () => navigate("/proposal") : undefined}
-              >
-                <div className="step-index">{index + 1}</div>
-                <div>
-                  <strong>{step.label}</strong>
-                  <span>{step.desc}</span>
-                </div>
-              </button>
-            ))}
+            {agentSteps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <button
+                  className="agent-step"
+                  key={step.label}
+                  onClick={step.label === "方案生成" ? () => navigate("/proposal") : undefined}
+                >
+                  <div className="step-index">{index + 1}</div>
+                  <Icon size={18} />
+                  <div>
+                    <strong>{step.label}</strong>
+                    <span>{step.desc}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="quick-actions">
+            <button onClick={() => navigate("/upload")}>
+              <FileUp size={18} />
+              上传资料
+            </button>
+            <button className="secondary" onClick={() => navigate("/risks")}>
+              <AlertTriangle size={18} />
+              查看风险
+            </button>
+            <button className="secondary" onClick={() => navigate("/history")}>
+              <FolderKanban size={18} />
+              历史记录
+            </button>
           </div>
         </article>
 
-        <article className="work-panel">
+        <article className="work-panel insight-panel">
           <div className="panel-heading">
             <div>
               <h2>分析概览</h2>
-              <p>系统汇总匹配分数、风险数量与投标建议。</p>
+              <p>匹配得分与风险态势。</p>
             </div>
             <BarChart3 size={22} />
           </div>
@@ -179,6 +218,10 @@ export function DashboardPage() {
             <strong>{summary.average_score ?? 0}</strong>
             <p>优先补齐硬性材料，再优化技术响应与可量化证明。</p>
           </div>
+          <div className="trend-card">
+            <TrendingUp size={18} />
+            <span>建议重点关注废标条款、保证金、人员社保与同类业绩证明。</span>
+          </div>
         </article>
       </section>
 
@@ -186,7 +229,7 @@ export function DashboardPage() {
         <div className="panel-heading">
           <div>
             <h2>最近项目</h2>
-            <p>查看近期投标分析记录。</p>
+            <p>查看近期投标分析记录和处理状态。</p>
           </div>
           <button className="link-button" onClick={() => navigate("/history")}>
             全部项目
@@ -199,8 +242,8 @@ export function DashboardPage() {
             <span>招标单位</span>
             <span>状态</span>
             <span>分数</span>
-            <span>高风险</span>
-            <span>更新时间</span>
+            <span>文件</span>
+            <span>创建时间</span>
           </div>
           {loading && (
             <div className="project-loading">
@@ -209,15 +252,19 @@ export function DashboardPage() {
             </div>
           )}
           {!loading && projects.length === 0 && (
-            <div className="project-loading">暂无项目，请先上传文件创建项目。</div>
+            <div className="empty-state">
+              <strong>还没有项目</strong>
+              <span>请先上传招标 PDF 和企业资质台账，创建第一条投标研判记录。</span>
+              <button onClick={() => navigate("/upload")}>立即上传</button>
+            </div>
           )}
           {projects.map((project) => (
             <div className="project-row" key={project.id}>
               <strong>{project.name}</strong>
               <span>{project.tender_company || project.tender_name || project.enterprise_id}</span>
-              <span className={`status-pill ${project.status}`}>{project.status}</span>
+              <span className={`status-pill ${project.status}`}>{statusLabel[project.status] || project.status}</span>
               <span>{project.latest_score ?? "-"}</span>
-              <span>{summary.high_risk_count ?? "-"}</span>
+              <span>{project.files_ready ? "已齐全" : "待补充"}</span>
               <span>{new Date(project.created_at).toLocaleDateString()}</span>
             </div>
           ))}
